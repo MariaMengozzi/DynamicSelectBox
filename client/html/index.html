@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Main page</title>
+    <link rel="stylesheet" href="../style/style.css">
+    <script src="https://code.jquery.com/jquery-3.7.1.js" integrity="sha256-eKhayi8LEQwp4NKxN+CfCh+3qOVUtJn3QNZ0TciWLP4="
+        crossorigin="anonymous"></script>
+</head>
+
+<body>
+
+    <h2>Search/Filter Dropdown</h2>
+    <p>Click on the button to open the dropdown menu, and use the input field to search for a specific dropdown link.
+    </p>
+
+    <div class="dropdown">
+        <!-- <button class="dropbtn">Dropdown</button> -->
+        <input type="text" placeholder="Search.." id="myInput">
+        <ul id="myDropdown" class="dropdown-content">
+            <li tabindex='-1'>Alabama</li> <!-- tabindex='-1' serve per poter applicare il focus all'li -->
+            <li tabindex='-1'>Alaska</li>
+            <li tabindex='-1'>American Samoa</li>
+            <li tabindex='-1'>Arizona</li>
+            <li tabindex='-1'>Arkansas</li>
+            <li tabindex='-1'>California</li>
+            <li tabindex='-1'>Colorado</li>
+            <li tabindex='-1'>Connecticut</li>
+            <li tabindex='-1'>Delaware</li>
+            <li tabindex='-1'>District of Columbia</li>
+            <li tabindex='-1'>Florida</li>
+            <li tabindex='-1'>Georgia</li>
+            <li tabindex='-1'>Guam</li>
+        </ul>
+    </div>
+
+
+    <script src="../js/index.js"></script>
+    
+</body>
+
+</html>
+
+<!-- Can be taken as reference -> https://github.com/indrimuska/jquery-editable-select/tree/master -->
