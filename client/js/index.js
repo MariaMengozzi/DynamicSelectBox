@@ -1,3 +1,6 @@
+var options = []
+var count = 0
+
 $(document).ready(function () {
 
     $("body").click(function (event) {
@@ -27,13 +30,55 @@ $(document).ready(function () {
     });
 
     $("#myInput").focusin(function () {
+        $('#myDropdown').empty()
+        $.ajax({
+            url: "http://127.0.0.1:8000/options", 
+            type: "get",
+            success: function (result) {
+                result["opt"].forEach(element => {
+                    $("#myDropdown").append(`<li tabindex='-1'>${element}</li>`);
+                });
+            },
+            error: function(res){
+                console.log(res)
+            }
+        });
         $("#myDropdown").show()
     });
 
-    $("li").click(function(){
+    $(document).on("click", "li", function () {
+        //add the event dynamically to all li
         $(this).focus()
         $("#myInput").val($(this).text())
     });
+    
+    /* $("li").on("click", function(){
+        $(this).focus()
+        $("#myInput").val($(this).text())
+    }); */
+
+    $(document).on("keydown", "li", function (e) {
+        if (e.keyCode == 40) {
+            $("li:focus").closest("li").next().focus();
+            return false;
+        }
+        if (e.keyCode == 38) {
+            $("li:focus").closest("li").prev().focus();
+            return false;
+        }
+    });
+
+    /* $("li").on("keydown", function (e) {
+
+        if (e.keyCode == 40) {
+            $("li:focus").closest("li").next().focus();
+            return false;
+        }
+        if (e.keyCode == 38) {
+            $("li:focus").closest("li").prev().focus();
+            return false;
+        }
+    }); */
 
     $("ul").keypress(function (e) {
         var key = e.which;
@@ -45,15 +90,5 @@ $(document).ready(function () {
         }
     });   
 
-    $("li").on("keydown", function (e) {
-
-        if (e.keyCode == 40) {
-            $("li:focus").closest("li").next().focus();
-            return false;
-        }
-        if (e.keyCode == 38) {
-            $("li:focus").closest("li").prev().focus();
-            return false;
-        }
-    });
+    
 });
