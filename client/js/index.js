@@ -1,6 +1,6 @@
 var noVisOptions = 0
 var start = 0
-var end = 10
+var end = 100
 var oldSearchLength = 0
 
 $(document).ready(function () {
@@ -16,13 +16,13 @@ $(document).ready(function () {
         $("#myDropdown").toggle()
     }); */
 
-    $("#myInput").keyup(function(){
+    $("#myInput").keyup(function(e){
         const input = $(this)
         const filter = input.val().toUpperCase()
         const li = $("li")
 
         if (($("#myInput").val().length >=2 && noVisOptions)
-            || oldSearchLength < $("#myInput").val().length){
+            || ((oldSearchLength != $("#myInput").val().length) && oldSearchLength >=1)){
             $('#myDropdown').empty()
             query = "start=" + start + "&end=" + end + "&filter=" + $("#myInput").val()
 
@@ -35,15 +35,19 @@ $(document).ready(function () {
                         element = result["opt"][index]
                         $("#myDropdown").append(`<li tabindex='-1'>${element}</li>`);
                     }
+                    if (result["opt"].length == 0){
+                        $('#myInput').css('outline', '3px solid red');
+                    } 
+                    
+                    $("#myDropdown").show()
                 },
                 error: function (res) {
                     console.log(res)
                 }
             });
 
-            $("#myDropdown").show()
-
         } else {
+            $("#myDropdown").show()
             for (let i = 0; i < li.length; i++) {
                 txtValue = li[i].textContent || li[i].innerText;
                 if (txtValue.toUpperCase().indexOf(filter) > -1) {
@@ -54,11 +58,33 @@ $(document).ready(function () {
             }
         }
 
+        if (e.keyCode == 13)  // the enter key code
+        {
+            e.preventDefault();
+            $.ajax({
+                url: "http://127.0.0.1:8000/options?" + query,
+                type: "get",
+                success: function (result) {
+                    if (result["opt"].length == 0 || !result["opt"].includes($("#myInput").val())) {
+                        $('#myInput').css('outline', '3px solid red');
+                        $("#myDropdown").hide()
+                    }
+                    return false;
+                },
+                error: function (res) {
+                    console.log(res)
+                    return false
+                }
+            });
+        }
+
         oldSearchLength = $("#myInput").val().length
         
     });
 
     $("#myInput").keydown(function (e) {
+        $('#myInput').css('outline', '3px solid #ddd');
+
         if (e.keyCode == 40) {
             $("#myDropdown li:first-child").focus();
             return false;
@@ -130,6 +156,31 @@ $(document).ready(function () {
             return false
         }
     });   
+
+    $(".delete").click(function() {
+        $("#myInput").val("")
+    });
+
+    $(".create").click(function () {
+        //check dell'input
+        query = "start=" + start + "&end=" + end + "&filter=" + $("#myInput").val()
+        $.ajax({
+            url: "http://127.0.0.1:8000/options?" + query,
+            type: "get",
+            success: function (result) {
+                if (result["opt"].length == 0) {
+                    $('#myInput').css('outline', '3px solid red');
+                } else {
+                    window.location.replace("https://www.youtube.com/watch?v=k85mRPqvMbE");
+                }
+
+            },
+            error: function (res) {
+                console.log(res)
+            }
+        });
+    });
+
 
     
 });
