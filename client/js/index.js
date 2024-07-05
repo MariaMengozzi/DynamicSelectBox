@@ -33,7 +33,7 @@ $(document).ready(function () {
                     noVisOptions = (end -1) ==(result["opt"].length - 1)
                     for (let index = 0; index < end-1 && index < result["opt"].length; index++) {
                         element = result["opt"][index]
-                        $("#myDropdown").append(`<li tabindex='-1'>${element}</li>`);
+                        $("#myDropdown").append(`<li tabindex='1'>${element}</li>`);
                     }
                     if (result["opt"].length == 0){
                         $('#myInput').css('outline', '3px solid red');
@@ -89,27 +89,50 @@ $(document).ready(function () {
             $("#myDropdown li:first-child").focus();
             return false;
         }
+
+
+        if (e.shiftKey && e.keyCode === 9) {
+            $("#myDropdown").hide()
+
+            focusable = $('button, [href], input, [tabindex="0"]')
+            next = focusable.index($("#myInput"))
+            console.log(focusable.index($("#myInput")))
+            focusable[next].focus()
+
+        } else if (e.keyCode == 9) {
+            $("#myDropdown").hide()
+            
+            focusable = $('button, [href], input, [tabindex="0"]')
+            next = focusable.index($("#myInput"))
+            console.log(focusable.index($("#myInput")))
+            focusable[next].focus()
+
+        }
+
     });
     
 
     $("#myInput").focusin(function () {
-        $('#myDropdown').empty()
-        query = "start=" + start + "&end=" + end + "&filter=" + $("#myInput").val() 
-        $.ajax({
-            url: "http://127.0.0.1:8000/options?" + query, 
-            type: "get",
-            success: function (result) {
-                noVisOptions = (end - 1) == (result["opt"].length - 1)
-                for (let index = 0; index < end - 1 && index < result["opt"].length; index++) {
-                    element = result["opt"][index]
-                    $("#myDropdown").append(`<li tabindex='-1'>${element}</li>`);
+        if (!$(this).is(":hidden")){
+            $('#myDropdown').empty()
+            query = "start=" + start + "&end=" + end + "&filter=" + $("#myInput").val()
+            $.ajax({
+                url: "http://127.0.0.1:8000/options?" + query,
+                type: "get",
+                success: function (result) {
+                    noVisOptions = (end - 1) == (result["opt"].length - 1)
+                    for (let index = 0; index < end - 1 && index < result["opt"].length; index++) {
+                        element = result["opt"][index]
+                        $("#myDropdown").append(`<li tabindex='1'>${element}</li>`);
+                    }
+                },
+                error: function (res) {
+                    console.log(res)
                 }
-            },
-            error: function(res){
-                console.log(res)
-            }
-        });
-        $("#myDropdown").show()
+            });
+            $("#myDropdown").show()
+        }
+        
     });
 
     $(document).on("click", "li", function () {
@@ -124,6 +147,7 @@ $(document).ready(function () {
     }); */
 
     $(document).on("keydown", "li", function (e) {
+        e.preventDefault();
         if (e.keyCode == 40) {
             $("li:focus").closest("li").next().focus();
             return false;
@@ -132,8 +156,26 @@ $(document).ready(function () {
             $("li:focus").closest("li").prev().focus();
             return false;
         }
-    });
 
+        
+        if (e.keyCode == 9) {
+            if (e.shiftKey) {
+                $("#myDropdown").hide()
+                focusable = $('button, [href], input, [tabindex="0"]')
+                next = focusable.index($("#myInput")) -1
+                console.log(focusable.index($("#myInput")))
+                focusable[next].focus()
+            }
+            else{
+                $("#myDropdown").hide()
+                focusable = $('button, [href], input, [tabindex="0"]')
+                next = focusable.index($("#myInput")) + 1
+                console.log(focusable.index($("#myInput")))
+                focusable[next].focus()
+            }
+            return false
+        }
+    });
 
     /* $("li").on("keydown", function (e) {
 
