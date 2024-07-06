@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Dynamic Virtual Scroll</title>
+    <style>
+        .dropdown {
+            height: 200px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        #myDropdown {
+            list-style-type: none;
+            padding: 0;
+            margin: 0;
+            position: absolute;
+            width: 100%;
+        }
+
+        #myDropdown li {
+            padding: 10px;
+            background-color: #f0f0f0;
+            border-bottom: 1px solid #ccc;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- <div class="list-container">
+        <ul class="list"></ul>
+    </div> -->
+
+    <div class="dropdown">
+        <!-- <button class="dropbtn">Dropdown</button> -->
+        <input type="text" placeholder="Search.." id="myInput">
+        <ul id="myDropdown" class="dropdown-content ">
+        </ul>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        $(document).ready(function () {
+            var $listContainer = $(".dropdown");
+            var $list = $("#myDropdown");
+            var itemCount = 20//100;
+            var itemHeight = 30;
+            var containerHeight = $listContainer.height();
+            var numVisibleItems = Math.floor(containerHeight / itemHeight);
+            var currentIndex = 0;
+
+            function createListItems() {
+                var start = currentIndex;
+                var end = currentIndex + numVisibleItems;
+                $list.empty();
+                for (var i = start; i < end; i++) {
+                    if (i < itemCount) {
+                        $list.append("<li tabindex = 0>Item " + (i + 1) + "</li>");
+                    }
+                }
+            }
+
+            function updateList() {
+                var start = currentIndex;
+                var end = currentIndex + numVisibleItems;
+                $list.children().hide();
+                $list.children().slice(start - currentIndex, end - currentIndex).show();
+            }
+
+            $listContainer.on("wheel", function (e) {
+                e.preventDefault();
+                var delta = e.originalEvent.deltaY;
+                if (delta < 0) {
+                    currentIndex = Math.max(0, currentIndex - 1);
+                } else {
+                    currentIndex = Math.min(itemCount - numVisibleItems, currentIndex + 1);
+                }
+                createListItems();
+                updateList();
+                $('li:contains("Item 8")').first().focus();
+            });
+
+            itemFocus = 1
+
+            $(document).on("keydown", function (e) {
+                if (e.key === "ArrowUp") {
+                    currentIndex = Math.max(0, currentIndex - 1);
+                    createListItems();
+                    updateList();
+                    if (itemFocus > 1) {
+                        itemFocus = itemFocus - 1
+                    } else {
+                        //eventuale ulteriore richiesta
+                        itemFocus = itemFocus
+                    }
+                    $('li:contains("Item '+ itemFocus+'")').first().focus();
+                    
+                } else if (e.key === "ArrowDown") {
+                    currentIndex = Math.min(itemCount - numVisibleItems, currentIndex + 1);
+                    createListItems();
+                    updateList();
+                    if (itemFocus < itemCount){
+                        itemFocus = itemFocus + 1
+                    } else {
+                        //eventuale ulteriore richiesta
+                        itemFocus = itemFocus
+                    }
+                    
+                    $('li:contains("Item ' + itemFocus + '")').first().focus();
+                }
+            });
+
+            createListItems();
+            updateList();
+        });
+    </script>
+</body>
+
+</html>

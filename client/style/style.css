@@ -60,6 +60,7 @@ body {
 
 .dropdown ul> li:hover, .dropdown ul>li:focus{
     background-color: #ddd;
+    outline: 1px solid black
 }
 
 

@@ -2,8 +2,16 @@ var noVisOptions = 0
 var start = 0
 var end = 100
 var oldSearchLength = 0
+var options = []
 
 $(document).ready(function () {
+    var $listContainer = $("#myDropdown");
+    var $list = $("#myDropdown");
+    var itemCount = end;
+    var itemHeight = 30;
+    var containerHeight = 200//$("#myDropdown").height();
+    var numVisibleItems = Math.floor(containerHeight / itemHeight);
+    var currentIndex = 0;
 
     $("body").click(function (event) {
         if ($(event.target).parents('.dropdown').length == 0) {
@@ -31,15 +39,21 @@ $(document).ready(function () {
                 type: "get",
                 success: function (result) {
                     noVisOptions = (end -1) ==(result["opt"].length - 1)
-                    for (let index = 0; index < end-1 && index < result["opt"].length; index++) {
-                        element = result["opt"][index]
-                        $("#myDropdown").append(`<li tabindex='1'>${element}</li>`);
-                    }
+                    options = result["opt"]
+                    //azzero la lista
+                    currentIndex = 0
+                    itemCount = result["opt"].length
+                    createListItems();
+                    updateList();
+                
                     if (result["opt"].length == 0){
                         $('#myInput').css('outline', '3px solid red');
-                    } 
+                        $("#myDropdown").hide()
+                    } else {
+                        $("#myDropdown").show()
+                    }
                     
-                    $("#myDropdown").show()
+                    
                 },
                 error: function (res) {
                     console.log(res)
@@ -121,10 +135,11 @@ $(document).ready(function () {
                 type: "get",
                 success: function (result) {
                     noVisOptions = (end - 1) == (result["opt"].length - 1)
-                    for (let index = 0; index < end - 1 && index < result["opt"].length; index++) {
-                        element = result["opt"][index]
-                        $("#myDropdown").append(`<li tabindex='1'>${element}</li>`);
-                    }
+                    options = result["opt"]
+                    currentIndex = 0
+                    itemCount = result["opt"].length
+                    createListItems();
+                    updateList();
                 },
                 error: function (res) {
                     console.log(res)
@@ -146,33 +161,52 @@ $(document).ready(function () {
         $("#myInput").val($(this).text())
     }); */
 
+
     $(document).on("keydown", "li", function (e) {
-        e.preventDefault();
-        if (e.keyCode == 40) {
-            $("li:focus").closest("li").next().focus();
+        //e.preventDefault();
+        
+        if (e.keyCode == 40) { //arrow down
+            currentIndex = Math.min(itemCount - numVisibleItems, currentIndex + 1);
+            focusedIndex = options.indexOf($("li:focus").text())
+            text = focusedIndex < options.length - 1 ? options[focusedIndex + 1] : options[focusedIndex]
+            createListItems();
+            updateList();
+            console.log("vado su " + text)
+            $('li:contains("' + text + '")').first().focus();
             return false;
         }
-        if (e.keyCode == 38) {
-            $("li:focus").closest("li").prev().focus();
+        if (e.keyCode == 38) { //arrow up
+            currentIndex = Math.max(0, currentIndex - 1);
+            focusedIndex = options.indexOf($("li:focus").text())
+            text = focusedIndex > 0 ? options[focusedIndex - 1] : options[focusedIndex]
+            createListItems();
+            updateList();
+            console.log("vado su " + text)
+            $('li:contains("' + text + '")').first().focus();
             return false;
         }
 
         
-        if (e.keyCode == 9) {
+        if (e.keyCode == 9) { //tab
             if (e.shiftKey) {
                 $("#myDropdown").hide()
                 focusable = $('button, [href], input, [tabindex="0"]')
                 next = focusable.index($("#myInput")) -1
-                console.log(focusable.index($("#myInput")))
                 focusable[next].focus()
             }
             else{
                 $("#myDropdown").hide()
                 focusable = $('button, [href], input, [tabindex="0"]')
                 next = focusable.index($("#myInput")) + 1
-                console.log(focusable.index($("#myInput")))
                 focusable[next].focus()
             }
+            return false
+        }
+
+        if (e.keyCode == 13)  // the enter key code
+        {
+            $("#myInput").val($('li:focus').text())
+            $("#myDropdown").hide()
             return false
         }
     });
@@ -188,16 +222,6 @@ $(document).ready(function () {
             return false;
         }
     }); */
-
-    $("ul").keypress(function (e) {
-        var key = e.which;
-        if (key == 13)  // the enter key code
-        {
-            $("#myInput").val($('li:focus').text())
-            $("#myDropdown").hide()
-            return false
-        }
-    });   
 
     $(".delete").click(function() {
         $("#myInput").val("")
@@ -224,5 +248,35 @@ $(document).ready(function () {
     });
 
 
-    
+    /* ---- Gestione del virtual scroll ---- */
+
+    function createListItems() {
+        var start = currentIndex;
+        var end = itemCount < numVisibleItems ? currentIndex + itemCount : currentIndex + numVisibleItems;
+        $list.empty();
+        for (var i = start; i < end && i < itemCount && i >=0; i++) {
+            if (i < itemCount) {
+                $list.append(`<li tabindex='1'>${options[i]}</li>`);
+            }
+        }
+    }
+
+    function updateList() {
+        var start = currentIndex;
+        var end = itemCount < numVisibleItems ? currentIndex + itemCount : currentIndex + numVisibleItems;
+        $list.children().hide();
+        $list.children().slice(start - currentIndex, end - currentIndex).show();
+    }
+
+    $listContainer.on("wheel", function (e) {
+        e.preventDefault();
+        var delta = e.originalEvent.deltaY; /* Questa linea ottiene il valore dello scorrimento verticale. Il valore di deltaY sarà negativo se l'utente sta scorrendo verso l'alto, e positivo se sta scorrendo verso il basso */
+        if (delta < 0) {
+            currentIndex = Math.max(0, currentIndex - 1);
+        } else {
+            currentIndex = Math.min(itemCount - numVisibleItems, currentIndex + 1);
+        }
+        createListItems();
+        updateList();
+    });
 });
