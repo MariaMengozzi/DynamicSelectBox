@@ -8,7 +8,7 @@ $(document).ready(function () {
     var $listContainer = $("#myDropdown");
     var $list = $("#myDropdown");
     var itemCount = end;
-    var itemHeight = 30;
+    var itemHeight = 40;
     var containerHeight = 200//$("#myDropdown").height();
     var numVisibleItems = Math.floor(containerHeight / itemHeight);
     var currentIndex = 0;
@@ -171,8 +171,8 @@ $(document).ready(function () {
             text = focusedIndex < options.length - 1 ? options[focusedIndex + 1] : options[focusedIndex]
             createListItems();
             updateList();
-            console.log("vado su " + text)
             $('li:contains("' + text + '")').first().focus();
+            //TODO aggiungi chiamata se sono all'ultimo ed erano presenti altri record nel db -> anche per la rotela
             return false;
         }
         if (e.keyCode == 38) { //arrow up
@@ -181,9 +181,9 @@ $(document).ready(function () {
             text = focusedIndex > 0 ? options[focusedIndex - 1] : options[focusedIndex]
             createListItems();
             updateList();
-            console.log("vado su " + text)
             $('li:contains("' + text + '")').first().focus();
-            return false;
+            //TODO aggiungi chiamata se sono al primo ed erano presenti altri record nel db prima di quelli caricati (es sono alla seconda pagina e devo tornare alla prima) -> anche per la rotela
+            return false; 
         }
 
         
@@ -252,10 +252,10 @@ $(document).ready(function () {
 
     function createListItems() {
         var start = currentIndex;
-        var end = itemCount < numVisibleItems ? currentIndex + itemCount : currentIndex + numVisibleItems;
+        var end = currentIndex + numVisibleItems//itemCount < numVisibleItems ? currentIndex + itemCount : currentIndex + numVisibleItems;
         $list.empty();
-        for (var i = start; i < end && i < itemCount && i >=0; i++) {
-            if (i < itemCount) {
+        for (var i = start; i < end && i < itemCount; i++) {
+            if (i < itemCount && options[i] != undefined) {
                 $list.append(`<li tabindex='1'>${options[i]}</li>`);
             }
         }
@@ -263,7 +263,7 @@ $(document).ready(function () {
 
     function updateList() {
         var start = currentIndex;
-        var end = itemCount < numVisibleItems ? currentIndex + itemCount : currentIndex + numVisibleItems;
+        var end = currentIndex + numVisibleItems //itemCount < numVisibleItems ? currentIndex + itemCount : currentIndex + numVisibleItems;
         $list.children().hide();
         $list.children().slice(start - currentIndex, end - currentIndex).show();
     }
