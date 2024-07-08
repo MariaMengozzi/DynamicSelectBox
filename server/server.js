@@ -167,6 +167,16 @@ msg2 = {
     ]
 }
 
+msg3 = {
+    "opt": [
+    ]
+}
+
+for (let index = 0; index < 300; index++) {
+    msg3["opt"].push("prova" + index)
+    
+}
+
 
 app.get('/', (req, res) => {
     res.send('Hello World!')
@@ -178,9 +188,9 @@ app.get('/options', (req, res) => {
     const filter = req.query["filter"]
 
     if (filter != "")
-        data = msg2["opt"].filter(value => value.toLowerCase().includes(filter.toLowerCase())).slice(start, end)
+        data = msg3["opt"].filter(value => value.toLowerCase().includes(filter.toLowerCase())).slice(start, end)
     else
-        data = msg2["opt"].slice(start, end)
+        data = msg3["opt"].slice(start, end)
 
     res.status(200).json({ "opt": data })
 })

@@ -1,6 +1,6 @@
 var noVisOptions = 0
 var start = 0
-var end = 100
+var end = 10//100
 var oldSearchLength = 0
 var options = []
 
@@ -12,6 +12,7 @@ $(document).ready(function () {
     var containerHeight = 200//$("#myDropdown").height();
     var numVisibleItems = Math.floor(containerHeight / itemHeight);
     var currentIndex = 0;
+    var pageNum = 1;
 
     $("body").click(function (event) {
         if ($(event.target).parents('.dropdown').length == 0) {
@@ -42,6 +43,7 @@ $(document).ready(function () {
                     options = result["opt"]
                     //azzero la lista
                     currentIndex = 0
+                    pageNum = 1
                     itemCount = result["opt"].length
                     createListItems();
                     updateList();
@@ -137,6 +139,7 @@ $(document).ready(function () {
                     noVisOptions = (end - 1) == (result["opt"].length - 1)
                     options = result["opt"]
                     currentIndex = 0
+                    pageNum = 1
                     itemCount = result["opt"].length
                     createListItems();
                     updateList();
@@ -166,23 +169,65 @@ $(document).ready(function () {
         //e.preventDefault();
         
         if (e.keyCode == 40) { //arrow down
-            currentIndex = Math.min(itemCount - numVisibleItems, currentIndex + 1);
             focusedIndex = options.indexOf($("li:focus").text())
-            text = focusedIndex < options.length - 1 ? options[focusedIndex + 1] : options[focusedIndex]
-            createListItems();
-            updateList();
-            $('li:contains("' + text + '")').first().focus();
-            //TODO aggiungi chiamata se sono all'ultimo ed erano presenti altri record nel db -> anche per la rotela
+            if ((focusedIndex == options.length - 1) && noVisOptions){
+                $('#myDropdown').empty()
+                pageNum = pageNum + 1
+                query = "start=" + (start + (end) * (pageNum - 1)) + "&end=" + (end*pageNum) + "&filter=" + $("#myInput").val()
+                $.ajax({
+                    url: "http://127.0.0.1:8000/options?" + query,
+                    type: "get",
+                    success: function (result) {
+                        noVisOptions = (end - 1) == (result["opt"].length - 1)
+                        options = result["opt"]
+                        currentIndex = 0
+                        itemCount = result["opt"].length
+                        createListItems();
+                        updateList();
+                        $('li:contains("' + options[0] + '")').first().focus()
+                    },
+                    error: function (res) {
+                        console.log(res)
+                    }
+                });
+            } else {
+                currentIndex = Math.min(itemCount - numVisibleItems, currentIndex + 1);
+                text = focusedIndex < options.length - 1 ? options[focusedIndex + 1] : options[focusedIndex]
+                createListItems();
+                updateList();
+                $('li:contains("' + text + '")').first().focus();
+            }
             return false;
         }
         if (e.keyCode == 38) { //arrow up
-            currentIndex = Math.max(0, currentIndex - 1);
             focusedIndex = options.indexOf($("li:focus").text())
-            text = focusedIndex > 0 ? options[focusedIndex - 1] : options[focusedIndex]
-            createListItems();
-            updateList();
-            $('li:contains("' + text + '")').first().focus();
-            //TODO aggiungi chiamata se sono al primo ed erano presenti altri record nel db prima di quelli caricati (es sono alla seconda pagina e devo tornare alla prima) -> anche per la rotela
+            if(pageNum > 1 && focusedIndex == 0){
+                $('#myDropdown').empty()
+                pageNum = pageNum - 1
+                query = "start=" + (currentIndex + (end) * (pageNum - 1)) + "&end=" + (currentIndex+(end * pageNum)) + "&filter=" + $("#myInput").val()
+                $.ajax({
+                    url: "http://127.0.0.1:8000/options?" + query,
+                    type: "get",
+                    success: function (result) {
+                        noVisOptions = (end - 1) == (result["opt"].length - 1)
+                        options = result["opt"]
+                        currentIndex = (options.length) - numVisibleItems
+                        itemCount = result["opt"].length
+                        createListItems();
+                        updateList();
+                        $('li:contains("' + options[options.length - 1] + '")').first().focus()
+                    },
+                    error: function (res) {
+                        console.log(res)
+                    }
+                });
+            } else {
+                currentIndex = Math.max(0, currentIndex - 1);
+                text = focusedIndex > 0 ? options[focusedIndex - 1] : options[focusedIndex]
+                createListItems();
+                updateList();
+                $('li:contains("' + text + '")').first().focus();
+            }
             return false; 
         }
 
