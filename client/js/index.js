@@ -8,8 +8,14 @@ $(document).ready(function () {
     var $listContainer = $("#myDropdown");
     var $list = $("#myDropdown");
     var itemCount = end;
-    var itemHeight = 40;
-    var containerHeight = 200//$("#myDropdown").height();
+    
+    $("#myDropdown").append("<li tabindex='1'>test</li>")
+    var itemHeight = $("li").outerHeight(true); //include height, padding, border and margin
+    $("#myDropdown").empty()
+
+    var containerHeight = $("#myDropdown").height();
+    $("#myDropdown").css('height', 'auto');
+
     var numVisibleItems = Math.floor(containerHeight / itemHeight);
     var currentIndex = 0;
     var pageNum = 1;
@@ -39,7 +45,7 @@ $(document).ready(function () {
                 url: "http://127.0.0.1:8000/options?" + query,
                 type: "get",
                 success: function (result) {
-                    noVisOptions = (end -1) ==(result["opt"].length - 1)
+                    noVisOptions = end == result["opt"].length
                     options = result["opt"]
                     //azzero la lista
                     currentIndex = 0
@@ -136,7 +142,7 @@ $(document).ready(function () {
                 url: "http://127.0.0.1:8000/options?" + query,
                 type: "get",
                 success: function (result) {
-                    noVisOptions = (end - 1) == (result["opt"].length - 1)
+                    noVisOptions = end == result["opt"].length
                     options = result["opt"]
                     currentIndex = 0
                     pageNum = 1
@@ -157,6 +163,7 @@ $(document).ready(function () {
         //add the event dynamically to all li
         $(this).focus()
         $("#myInput").val($(this).text())
+        oldSearchLength = $("#myInput").val().length
     });
     
     /* $("li").on("click", function(){
@@ -166,25 +173,28 @@ $(document).ready(function () {
 
 
     $(document).on("keydown", "li", function (e) {
-        //e.preventDefault();
+        e.preventDefault();
         
         if (e.keyCode == 40) { //arrow down
             focusedIndex = options.indexOf($("li:focus").text())
+            console.log(noVisOptions)
             if ((focusedIndex == options.length - 1) && noVisOptions){
-                $('#myDropdown').empty()
                 pageNum = pageNum + 1
                 query = "start=" + (start + (end) * (pageNum - 1)) + "&end=" + (end*pageNum) + "&filter=" + $("#myInput").val()
                 $.ajax({
                     url: "http://127.0.0.1:8000/options?" + query,
                     type: "get",
                     success: function (result) {
-                        noVisOptions = (end - 1) == (result["opt"].length - 1)
-                        options = result["opt"]
-                        currentIndex = 0
-                        itemCount = result["opt"].length
-                        createListItems();
-                        updateList();
-                        $('li:contains("' + options[0] + '")').first().focus()
+                        noVisOptions = end == result["opt"].length
+                        if (result["opt"].length > 0 && noVisOptions) {
+                            options = result["opt"]
+                            $('#myDropdown').empty()
+                            currentIndex = 0
+                            itemCount = result["opt"].length
+                            createListItems();
+                            updateList();
+                            $('li:contains("' + options[0] + '")').first().focus()
+                        }
                     },
                     error: function (res) {
                         console.log(res)
@@ -202,17 +212,17 @@ $(document).ready(function () {
         if (e.keyCode == 38) { //arrow up
             focusedIndex = options.indexOf($("li:focus").text())
             if(pageNum > 1 && focusedIndex == 0){
-                $('#myDropdown').empty()
                 pageNum = pageNum - 1
                 query = "start=" + (currentIndex + (end) * (pageNum - 1)) + "&end=" + (currentIndex+(end * pageNum)) + "&filter=" + $("#myInput").val()
                 $.ajax({
                     url: "http://127.0.0.1:8000/options?" + query,
                     type: "get",
                     success: function (result) {
-                        noVisOptions = (end - 1) == (result["opt"].length - 1)
+                        noVisOptions = end == result["opt"].length
                         options = result["opt"]
                         currentIndex = (options.length) - numVisibleItems
                         itemCount = result["opt"].length
+                        $('#myDropdown').empty()
                         createListItems();
                         updateList();
                         $('li:contains("' + options[options.length - 1] + '")').first().focus()
@@ -251,6 +261,7 @@ $(document).ready(function () {
         if (e.keyCode == 13)  // the enter key code
         {
             $("#myInput").val($('li:focus').text())
+            oldSearchLength = $("#myInput").val().length
             $("#myDropdown").hide()
             return false
         }
@@ -317,11 +328,62 @@ $(document).ready(function () {
         e.preventDefault();
         var delta = e.originalEvent.deltaY; /* Questa linea ottiene il valore dello scorrimento verticale. Il valore di deltaY sarà negativo se l'utente sta scorrendo verso l'alto, e positivo se sta scorrendo verso il basso */
         if (delta < 0) {
-            currentIndex = Math.max(0, currentIndex - 1);
+            if (($listContainer.scrollTop() == 0) 
+                && (pageNum > 1) 
+            &&  $("li:first-child").text() == options[0]) {
+                $('#myDropdown').empty()
+                pageNum = pageNum - 1
+                query = "start=" + (currentIndex + (end) * (pageNum - 1)) + "&end=" + (currentIndex + (end * pageNum)) + "&filter=" + $("#myInput").val()
+                $.ajax({
+                    url: "http://127.0.0.1:8000/options?" + query,
+                    type: "get",
+                    success: function (result) {
+                        noVisOptions = end == result["opt"].length
+                        options = result["opt"]
+                        currentIndex = (options.length) - numVisibleItems
+                        itemCount = result["opt"].length
+                        createListItems();
+                        updateList();
+                    },
+                    error: function (res) {
+                        console.log(res)
+                    }
+                });
+            } else {
+                currentIndex = Math.max(0, currentIndex - 1);
+                createListItems();
+                updateList();
+            }
         } else {
-            currentIndex = Math.min(itemCount - numVisibleItems, currentIndex + 1);
+            if ((($listContainer.scrollTop() + $listContainer.height()) == $listContainer.height()) 
+                && ($("li:last-child").text() == options[options.length-1])
+                && noVisOptions) {
+                pageNum = pageNum + 1
+                query = "start=" + (start + (end) * (pageNum - 1)) + "&end=" + (end * pageNum) + "&filter=" + $("#myInput").val()
+                $.ajax({
+                    url: "http://127.0.0.1:8000/options?" + query,
+                    type: "get",
+                    success: function (result) {
+                        noVisOptions = end == result["opt"].length
+                        if (result["opt"].length > 0 && noVisOptions) {
+                            options = result["opt"]
+                            $('#myDropdown').empty()
+                            currentIndex = 0
+                            itemCount = result["opt"].length
+                            createListItems();
+                            updateList();
+                        }
+                    },
+                    error: function (res) {
+                        console.log(res)
+                    }
+                });
+            } else {
+                currentIndex = Math.min(itemCount - numVisibleItems, currentIndex + 1)
+                createListItems();
+                updateList();
+            }
         }
-        createListItems();
-        updateList();
     });
+
 });

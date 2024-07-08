@@ -172,7 +172,7 @@ msg3 = {
     ]
 }
 
-for (let index = 0; index < 300; index++) {
+for (let index = 0; index < 50; index++) {
     msg3["opt"].push("prova" + index)
     
 }
